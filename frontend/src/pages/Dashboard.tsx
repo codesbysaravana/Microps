@@ -22,6 +22,9 @@ export const Dashboard: React.FC = () => {
   const [error, setError] = useState('');
   const [isDeploying, setIsDeploying] = useState(false);
   const [buildLogs, setBuildLogs] = useState<string[]>([]);
+  const [diagnosticReport, setDiagnosticReport] = useState<any>(null);
+  const [applyingFix, setApplyingFix] = useState(false);
+  const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
 
   const handleLogout = () => {
     logout();
@@ -37,6 +40,7 @@ export const Dashboard: React.FC = () => {
     setReport(null);
     setIsDeploying(false);
     setBuildLogs([]);
+    setDiagnosticReport(null);
 
     try {
       const response = await preflightService.analyze(repoUrl);
@@ -48,10 +52,42 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const handleApplyFixClick = async () => {
+    if (!diagnosticReport?.fixAction || !activeProjectId) return;
+    setApplyingFix(true);
+    setBuildLogs((prev) => [...prev, '\n⚡ Applying Autonomous One-Click Fix to repository config...']);
+    try {
+      const res = await fetch(`${BASE_URL}/build/apply-fix`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${useAuthStore.getState().token}`,
+        },
+        body: JSON.stringify({
+          projectId: activeProjectId,
+          actionType: diagnosticReport.fixAction.actionType,
+          payload: diagnosticReport.fixAction.payload,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBuildLogs((prev) => [...prev, `✓ Fix successfully applied! Automated pipeline re-initialized (New Job ID: ${data.build?.jobId || 'N/A'})`]);
+        setDiagnosticReport(null);
+      } else {
+        setBuildLogs((prev) => [...prev, `❌ Fix remediation failed: ${data.message}`]);
+      }
+    } catch (err: any) {
+      setBuildLogs((prev) => [...prev, `❌ Fix execution error: ${err.message}`]);
+    } finally {
+      setApplyingFix(false);
+    }
+  };
+
   const handleDeploy = async () => {
     if (!report) return;
     setIsDeploying(true);
     setBuildLogs(['Starting deployment sequence...']);
+    setDiagnosticReport(null);
 
     try {
       const deployResponse = await buildService.deploy({
@@ -61,6 +97,7 @@ export const Dashboard: React.FC = () => {
         projectName: repoUrl.split('/').pop() || 'app',
       });
 
+      setActiveProjectId((deployResponse as any).projectId || null);
       setBuildLogs((prev) => [...prev, `Pipeline initialized. Job ID: ${deployResponse.jobId}`]);
 
       const token = useAuthStore.getState().token;
@@ -68,6 +105,9 @@ export const Dashboard: React.FC = () => {
 
       eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        if (data.type === 'DIAGNOSTIC_REPORT') {
+          setDiagnosticReport(data);
+        }
         if (data.message) {
           setBuildLogs((prev) => [...prev, data.message]);
         }
@@ -374,6 +414,62 @@ export const Dashboard: React.FC = () => {
                       {isDeploying ? 'Pipeline Active...' : 'Execute Deployment Sequence'}
                     </button>
                   </div>
+                </div>
+              )}
+
+              {diagnosticReport && (
+                <div className="bg-surface border-2 border-error/50 rounded-xl p-6 text-ivory shadow-[0_0_25px_rgba(239,68,68,0.15)] relative overflow-hidden my-6">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-error/10 rounded-full blur-2xl pointer-events-none"></div>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-headline-md text-xl text-error font-bold flex items-center gap-2 mb-2">
+                        <span>{diagnosticReport.failureTitle || '❌ Build failed.'}</span>
+                      </h4>
+                      <div className="font-mono text-xs space-y-3 mt-4">
+                        <div>
+                          <span className="text-text-muted uppercase tracking-widest block text-[10px] mb-1">Root Cause</span>
+                          <div className="text-ivory bg-surface-elevated p-3 rounded-lg border border-border-subtle font-medium">
+                            {diagnosticReport.rootCause}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-surface-elevated p-3 rounded-lg border border-border-subtle">
+                            <span className="text-text-muted block text-[10px] uppercase">Detected Environment</span>
+                            <strong className="text-gold mt-1 block">{diagnosticReport.detected}</strong>
+                          </div>
+                          <div className="bg-surface-elevated p-3 rounded-lg border border-border-subtle">
+                            <span className="text-text-muted block text-[10px] uppercase">Probability</span>
+                            <strong className="text-success mt-1 block">{diagnosticReport.probability}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {diagnosticReport.fixAction && (
+                    <div className="mt-6 pt-5 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4">
+                      <div>
+                        <span className="text-[11px] font-mono text-gold uppercase tracking-wider font-semibold">Recommended Autonomous Fix:</span>
+                        <div className="font-mono text-sm text-ivory font-bold">{diagnosticReport.fixAction.label}</div>
+                      </div>
+                      <button
+                        onClick={handleApplyFixClick}
+                        disabled={applyingFix}
+                        className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-gold to-gold-hover hover:brightness-110 text-obsidian font-mono text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-[0_0_20px_rgba(201,152,45,0.4)] flex items-center justify-center gap-2"
+                      >
+                        {applyingFix ? (
+                          <>
+                            <span className="w-4 h-4 border-2 border-obsidian border-t-transparent rounded-full animate-spin"></span>
+                            <span>Applying Fix...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>⚡ Apply Fix</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 

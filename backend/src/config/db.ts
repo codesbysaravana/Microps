@@ -1,6 +1,10 @@
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import path from 'path';
 
+const isDev = process.env.NODE_ENV === 'development' || process.argv.some(arg => arg.includes('ts-node') || arg.includes('nodemon'));
+const envFile = isDev ? '.env.development' : '.env.production';
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 dotenv.config();
 
 export const pool = new Pool(

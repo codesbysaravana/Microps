@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { buildInitializer } from '../services/build/builder.service';
 import { buildBus } from '../utils/eventBus';
 import { ecryptAESnGCM } from '../utils/encryptEnv';
+import { applyProjectFixDB } from '../repository/project.repository';
 
 export const handleBuildAndDeploy = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -65,5 +66,57 @@ export const handleBuildStream = async (req: Request, res: Response): Promise<vo
   } catch (err: any) {
     console.error('SSE Error:', err);
     res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+export const handleApplyFix = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, message: 'Unauthorized User' });
+      return;
+    }
+
+    const { projectId, actionType, payload } = req.body;
+    if (!projectId || !payload) {
+      res.status(400).json({ success: false, message: 'Missing projectId or payload' });
+      return;
+    }
+
+    const updates: { installCommand?: string; buildCommand?: string; language?: string } = {};
+    if (payload.installCommand) updates.installCommand = payload.installCommand;
+    if (payload.buildCommand) updates.buildCommand = payload.buildCommand;
+    if (payload.targetValue) updates.language = payload.targetValue;
+
+    const updatedProject = await applyProjectFixDB(userId, Number(projectId), updates);
+    if (!updatedProject) {
+      res.status(404).json({ success: false, message: 'Project not found' });
+      return;
+    }
+
+    const buildResult = await buildInitializer(
+      userId,
+      updatedProject.repo_url,
+      updatedProject.branch || 'main',
+      updatedProject.build_command || '',
+      updatedProject.name,
+      null,
+      {
+        installCommand: updatedProject.install_command,
+        buildCommand: updatedProject.build_command,
+        runtime: updatedProject.language,
+        projectId: updatedProject.id,
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Fix applied successfully and build re-triggered!',
+      project: updatedProject,
+      build: buildResult,
+    });
+  } catch (err: any) {
+    console.error('Apply Fix Error:', err);
+    res.status(500).json({ success: false, message: 'Server Error', error: err.message });
   }
 };

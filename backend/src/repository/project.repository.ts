@@ -76,3 +76,31 @@ export const deleteProjectDB = async (userId: number, projectId: number) => {
     return false;
   }
 };
+
+export const applyProjectFixDB = async (
+  userId: number,
+  projectId: number,
+  updates: { installCommand?: string; buildCommand?: string; language?: string }
+) => {
+  try {
+    const existingRes = await pool.query(`SELECT * FROM projects WHERE id = $1 AND user_id = $2`, [projectId, userId]);
+    if (existingRes.rows.length === 0) return false;
+    const project = existingRes.rows[0];
+
+    const newInstall = updates.installCommand !== undefined ? updates.installCommand : project.install_command;
+    const newBuild = updates.buildCommand !== undefined ? updates.buildCommand : project.build_command;
+    const newLang = updates.language !== undefined ? updates.language : project.language;
+
+    const query = `
+      UPDATE projects
+      SET install_command = $1, build_command = $2, language = $3
+      WHERE id = $4 AND user_id = $5
+      RETURNING *
+    `;
+    const result = await pool.query(query, [newInstall, newBuild, newLang, projectId, userId]);
+    return result.rows.length > 0 ? result.rows[0] : false;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+};
