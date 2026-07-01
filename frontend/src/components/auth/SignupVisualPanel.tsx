@@ -77,7 +77,7 @@ export const SignupVisualPanel: React.FC = () => {
             <div className="w-8 h-8 sm:w-9 sm:h-9 xl:w-10 xl:h-10 overflow-hidden rounded bg-[#2A2A2A] border border-[#2A2A2A] shrink-0 flex items-center justify-center text-xs font-mono text-neutral-400 font-bold">
               <img
                 src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80"
-                alt="Elias Thorne"
+                alt="Joshua Moses"
                 className="w-full h-full object-cover grayscale opacity-80"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
@@ -87,7 +87,7 @@ export const SignupVisualPanel: React.FC = () => {
             </div>
             <div>
               <p className="font-mono text-xs uppercase tracking-widest text-white font-bold leading-none mb-1">
-                ELIAS THORNE
+                JOSHUA MOSES
               </p>
               <p className="font-mono text-[10px] sm:text-[11px] text-neutral-500 tracking-wider">
                 CTO, VECTOR DYNAMICS
@@ -95,7 +95,7 @@ export const SignupVisualPanel: React.FC = () => {
             </div>
           </div>
           <blockquote className="font-body-md italic text-neutral-300 border-l-2 border-[#D4AF37]/60 pl-3 sm:pl-4 text-xs sm:text-sm xl:text-base leading-relaxed">
-            "MicrOps isn't just a platform; it's a competitive advantage. The precision of their deployment engine is unmatched in the industry."
+            "MicrOps isn't just a platform; it's a competitive advantage. The precision of their deployment engine is unmatched."
           </blockquote>
         </div>
       </div>
