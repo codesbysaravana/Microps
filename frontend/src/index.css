@@ -31,6 +31,25 @@ body {
   flex-direction: column;
 }
 
+/* ── Animations ─────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out both;
+}
+
+@keyframes fadeInSlow {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-in {
+  animation: fadeInSlow 0.3s ease-out both;
+}
+
 /* Glassmorphism Panel */
 .glass-panel {
   background: var(--glass-bg);

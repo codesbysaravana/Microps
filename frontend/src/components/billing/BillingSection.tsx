@@ -5,10 +5,12 @@ import { PricingPlansGrid } from './PricingPlansGrid';
 import { BillingHistoryInvoices } from './BillingHistoryInvoices';
 import { billingService } from '../../services/billingService';
 import type { BillingOverview } from '../../services/billingService';
+import { Toast } from '../ui/primitives';
 
 export const BillingSection: React.FC = () => {
   const [overview, setOverview] = useState<BillingOverview | null>(null);
   const [_loading, setLoading] = useState<boolean>(true);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const fetchOverview = async () => {
     try {
@@ -37,17 +39,21 @@ export const BillingSection: React.FC = () => {
       const res = await billingService.upgradePlan(tier);
       if (res) {
         setOverview(res);
-        alert(`Successfully upgraded organization plan to ${tier}!`);
+        setToastMessage(`Successfully upgraded organization plan to ${tier}!`);
       }
     } catch (err: any) {
-      alert(err.message || 'Error updating subscription tier.');
+      setToastMessage(err.message || 'Error updating subscription tier.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 animate-in fade-in duration-300 selection:bg-[#D4AF37] selection:text-[#131313]">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 animate-fadeIn selection:bg-gold selection:text-obsidian relative">
+      {toastMessage && (
+        <Toast message={toastMessage} type="info" onDismiss={() => setToastMessage(null)} />
+      )}
+
       {/* Visual Source of Truth Header */}
       <BillingHeader />
 

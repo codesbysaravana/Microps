@@ -12,8 +12,8 @@ export const HeroSection: React.FC = () => {
           color="#C9982D"
           speed={0.2}
           direction="forward"
-          scale={1.6}
-          opacity={0.12}
+          scale={1.7}
+          opacity={5.12}
           mouseInteractive={false}
         />
         {/* Soft radial mask and overlay so Plasma fades naturally into obsidian background */}
@@ -21,17 +21,16 @@ export const HeroSection: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-[#0E0E0E] via-transparent to-[#0E0E0E]" />
       </div>
 
-      {/* Ambient Breathing Gold & Obsidian Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#D4AF37]/[0.06] rounded-full blur-[120px] pointer-events-none animate-pulse duration-1000 z-0"></div>
+      {/* Ambient Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-purple-900/[0.04] rounded-full blur-[90px] pointer-events-none z-0"></div>
 
       {/* Hero Content Wrapper */}
       <div className="relative z-10 max-w-6xl mx-auto flex flex-col items-center justify-center">
         {/* Hero Massive Typography - Visual Source of Truth */}
         <div className="space-y-2 mb-8 max-w-5xl">
-          <h1 className="font-headline-lg text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.12] animate-in fade-in slide-in-from-bottom-6 duration-700">
-            <span className="block text-[#F5F5F0]">
-              <ShinyText text="The Operating System" color="#F5F5F0" shineColor="#ffffff" speed={6} delay={10} spread={100} />
+          <h1 className="font-headline-lg text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.2] animate-in fade-in slide-in-from-bottom-6 duration-700">
+            <span className="block text-[#F5F5F0] pb-3 -mb-3 overflow-visible">
+              <ShinyText text="The Operating System" color="#F5F5F0" shineColor="#ffffff" speed={6} delay={10} spread={100} className="pb-3 -mb-3" />
             </span>
             <span className="block text-[#D4AF37] drop-shadow-[0_0_25px_rgba(212,175,55,0.25)]">
               for Cloud
@@ -64,7 +63,7 @@ export const HeroSection: React.FC = () => {
         <div className="mt-16 pt-8 border-t border-[#2A2A2A]/40 w-full flex flex-wrap items-center justify-center gap-8 text-neutral-500 font-mono text-xs uppercase tracking-wider">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>99.999% SLA Guarantee</span>
+            <span>99.99% SLA Guarantee</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#D4AF37]"></span>
