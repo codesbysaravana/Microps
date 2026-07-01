@@ -40,3 +40,29 @@ jobs:
       - name: Deploy to S3 Static Website Bucket
         run: |
           aws s3 sync frontend/dist s3://microps-client --delete
+
+      - name: Package Frontend Build
+        run: |
+          tar -czvf frontend-deploy.tar.gz -C frontend/dist .
+
+      - name: Copy Frontend Package to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "frontend-deploy.tar.gz"
+          target: "/home/ubuntu"
+
+      - name: Update EC2 Nginx Web Root
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo mkdir -p /var/www/microps-frontend
+            sudo rm -rf /var/www/microps-frontend/*
+            sudo tar -xvf /home/ubuntu/frontend-deploy.tar.gz -C /var/www/microps-frontend
+            rm -f /home/ubuntu/frontend-deploy.tar.gz
+            sudo systemctl reload nginx
