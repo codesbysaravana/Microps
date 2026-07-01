@@ -7,6 +7,7 @@ import { BASE_URL } from '../lib/api';
 import { ProjectsSection } from '../components/ProjectsSection';
 import { BillingSection } from '../components/billing/BillingSection';
 import { OverviewSection } from '../components/dashboard/OverviewSection';
+import { DeploymentControlCenter } from '../components/dashboard/DeploymentControlCenter';
 import { useNavigate } from 'react-router-dom';
 
 type TabType = 'overview' | 'projects' | 'deploy' | 'infrastructure' | 'ai' | 'billing' | 'settings' | 'support';
@@ -327,166 +328,20 @@ export const Dashboard: React.FC = () => {
           )}
 
           {(activeTab === 'deploy' || activeTab === 'infrastructure' || activeTab === 'ai' || activeTab === 'support') && (
-            <div className="max-w-5xl mx-auto space-y-8 py-4">
-              <div className="bg-surface text-ivory border border-border-subtle rounded-xl p-8 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="font-headline-md text-2xl text-ivory font-semibold">Deploy a new microservice</h2>
-                  <span className="px-2.5 py-1 rounded bg-surface-elevated border border-gold/30 text-gold font-mono text-xs">Automated Preflight</span>
-                </div>
-                <p className="font-body-md text-sm text-text-secondary mb-6">Paste a GitHub repository URL to run automated Pre-Flight Intelligence & Cost Oracle check.</p>
-
-                <form onSubmit={handleAnalyze} className="flex flex-col sm:flex-row gap-3 font-mono text-xs">
-                  <input
-                    type="url"
-                    placeholder="https://github.com/codesbysaravana/microps-service"
-                    value={repoUrl}
-                    onChange={(e) => setRepoUrl(e.target.value)}
-                    disabled={loading}
-                    className="flex-1 bg-obsidian border border-border-subtle focus:border-gold rounded-lg px-4 py-3.5 text-ivory placeholder:text-text-muted focus:outline-none transition-colors text-sm"
-                  />
-                  <button
-                    type="submit"
-                    className="px-6 py-3.5 bg-gold hover:bg-gold-hover text-obsidian font-bold uppercase tracking-wider rounded-lg transition-all disabled:opacity-50 shrink-0 shadow-[0_0_15px_rgba(201,152,45,0.2)] text-xs"
-                    disabled={loading || !repoUrl}
-                  >
-                    {loading ? 'Analyzing...' : 'Run Pre-Flight'}
-                  </button>
-                </form>
-                {error && (
-                  <div className="mt-4 p-3 rounded bg-error/10 border border-error/40 text-error font-mono text-xs">
-                    {error}
-                  </div>
-                )}
-              </div>
-
-              {loading && (
-                <div className="bg-surface border border-border-subtle rounded-xl p-12 text-center font-mono text-sm text-gold animate-pulse">
-                  <p>Scanning Repository Topology & Running Cost Oracle...</p>
-                </div>
-              )}
-
-              {report && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-surface border border-border-subtle rounded-xl p-6 text-ivory">
-                    <h3 className="font-headline-md text-lg text-ivory mb-4 flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-gold"></span>
-                      <span>Architecture Radar</span>
-                    </h3>
-                    <div className="font-mono text-xs space-y-2.5 text-text-secondary bg-surface-elevated p-4 rounded-lg border border-border-subtle">
-                      <div className="flex justify-between">
-                        <span className="text-text-muted">Runtime Detected:</span>
-                        <strong className="text-gold">{report.radar.runtime}</strong>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-text-muted">Framework:</span>
-                        <strong className="text-ivory">{report.radar.framework}</strong>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-text-muted">Detected Port:</span>
-                        <strong>{report.radar.port}</strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-surface border border-border-subtle rounded-xl p-6 text-ivory flex flex-col justify-between">
-                    <div>
-                      <h3 className="font-headline-md text-lg text-ivory mb-4 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-info"></span>
-                        <span>Cost Oracle Forecast</span>
-                      </h3>
-                      <div className="font-mono text-xs space-y-2.5 text-text-secondary bg-surface-elevated p-4 rounded-lg border border-border-subtle">
-                        <div className="flex justify-between">
-                          <span className="text-text-muted">Total Monthly Forecast:</span>
-                          <strong className="text-success font-bold">${report.costOracle.totalMonthly}/mo</strong>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-text-muted">Recommended Spec:</span>
-                          <strong className="text-ivory">{report.costOracle.computeSpec}</strong>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={handleDeploy}
-                      disabled={isDeploying}
-                      className="mt-6 w-full py-3.5 bg-gold hover:bg-gold-hover text-obsidian font-mono text-xs font-bold uppercase tracking-wider rounded-lg transition-all disabled:opacity-50 shadow-[0_0_15px_rgba(201,152,45,0.2)]"
-                    >
-                      {isDeploying ? 'Pipeline Active...' : 'Execute Deployment Sequence'}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {diagnosticReport && (
-                <div className="bg-surface border-2 border-error/50 rounded-xl p-6 text-ivory shadow-[0_0_25px_rgba(239,68,68,0.15)] relative overflow-hidden my-6">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-error/10 rounded-full blur-2xl pointer-events-none"></div>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="font-headline-md text-xl text-error font-bold flex items-center gap-2 mb-2">
-                        <span>{diagnosticReport.failureTitle || '❌ Build failed.'}</span>
-                      </h4>
-                      <div className="font-mono text-xs space-y-3 mt-4">
-                        <div>
-                          <span className="text-text-muted uppercase tracking-widest block text-[10px] mb-1">Root Cause</span>
-                          <div className="text-ivory bg-surface-elevated p-3 rounded-lg border border-border-subtle font-medium">
-                            {diagnosticReport.rootCause}
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-surface-elevated p-3 rounded-lg border border-border-subtle">
-                            <span className="text-text-muted block text-[10px] uppercase">Detected Environment</span>
-                            <strong className="text-gold mt-1 block">{diagnosticReport.detected}</strong>
-                          </div>
-                          <div className="bg-surface-elevated p-3 rounded-lg border border-border-subtle">
-                            <span className="text-text-muted block text-[10px] uppercase">Probability</span>
-                            <strong className="text-success mt-1 block">{diagnosticReport.probability}</strong>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {diagnosticReport.fixAction && (
-                    <div className="mt-6 pt-5 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4">
-                      <div>
-                        <span className="text-[11px] font-mono text-gold uppercase tracking-wider font-semibold">Recommended Autonomous Fix:</span>
-                        <div className="font-mono text-sm text-ivory font-bold">{diagnosticReport.fixAction.label}</div>
-                      </div>
-                      <button
-                        onClick={handleApplyFixClick}
-                        disabled={applyingFix}
-                        className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-gold to-gold-hover hover:brightness-110 text-obsidian font-mono text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-[0_0_20px_rgba(201,152,45,0.4)] flex items-center justify-center gap-2"
-                      >
-                        {applyingFix ? (
-                          <>
-                            <span className="w-4 h-4 border-2 border-obsidian border-t-transparent rounded-full animate-spin"></span>
-                            <span>Applying Fix...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>⚡ Apply Fix</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {buildLogs.length > 0 && (
-                <div className="bg-surface border border-border-subtle rounded-xl p-6 font-mono text-xs text-ivory">
-                  <h4 className="text-text-secondary mb-3 uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
-                    <span>Live Pipeline Telemetry</span>
-                  </h4>
-                  <div className="space-y-1.5 max-h-64 overflow-y-auto text-success bg-surface-elevated p-4 rounded-lg border border-border-subtle">
-                    {buildLogs.map((log, index) => (
-                      <div key={index}>&gt; {log}</div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <DeploymentControlCenter
+              repoUrl={repoUrl}
+              setRepoUrl={setRepoUrl}
+              loading={loading}
+              report={report}
+              error={error}
+              isDeploying={isDeploying}
+              buildLogs={buildLogs}
+              diagnosticReport={diagnosticReport}
+              applyingFix={applyingFix}
+              handleAnalyze={handleAnalyze}
+              handleDeploy={handleDeploy}
+              handleApplyFixClick={handleApplyFixClick}
+            />
           )}
         </main>
       </div>
