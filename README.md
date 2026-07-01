@@ -12,28 +12,34 @@
 ## 🌐 Live Production Deployment
 
 MicrOps is live on AWS in the **Sydney (`ap-southeast-2`)** region running under a highly cost-optimized, secure hybrid cloud architecture:
-- **Live Platform URL**: [http://13.238.226.195](http://13.238.226.195)
+- **Live Production Domain**: [http://microps.in](http://microps.in) (Direct A-Record resolution)
+- **Elastic IP Host**: [http://13.238.226.195](http://13.238.226.195)
 - **API Gateway Endpoint**: `http://13.238.226.195/api/v1/`
-- **Reverse Proxy Engine**: Nginx high-performance proxy serving static React SPA artifacts and proxying API requests cleanly to underlying Node.js PM2 daemons.
+- **Dual Reverse Proxy Engine**: Nginx reverse proxy serving static React SPA artifacts from `/var/www/microps-frontend` and proxying `/api/` requests directly to underlying Node.js PM2 daemons on port `8000`. Synchronized continuously with Amazon S3 (`microps-client`) via automated GitHub Actions CI/CD (`deploy-frontend.yml`).
 
 ---
 
 ## ✨ Key Platform Features
 
-### 📡 1. Automated Pre-Flight Intelligence & Cost Oracle
+### 🎨 1. Obsidian & Gold Enterprise Design System
+- **Curated Visual Palette**: Engineered around strict Obsidian Deep (`#050505`), Gold (`#C9982D`), and Ivory (`#F6F4EF`) design tokens with consistent 8-point spatial hierarchy.
+- **Decomposed 9-Stage Deployment Control Center**: Modular architecture separating deployment configuration from live operational telemetry (`DeployHeader`, `RepoInput`, `ConfigPanel`, `PreflightResults`, `PipelineView`, `LogConsole`, `DiagnosticBanner`, `InfraTimeline`, `HealthSummary`).
+- **Streamlined Operator Navigation**: 5-tab clean workspace navigation (Overview, Projects, Deployments, Billing, Settings) with real-time incident alert banners.
+
+### 📡 2. Automated Pre-Flight Intelligence & Cost Oracle
 - **Radar Scanning**: Automatically clones and audits target GitHub repositories to detect programming language runtimes (Node.js, Python, Go, Java) and frameworks (Next.js, Vite, Django, Flask).
 - **Cost Forecasting**: Computes real-time AWS infrastructure cost projections and assigns optimal CPU/Memory serverless specifications before build execution.
 
-### ⚡ 2. Real-Time Telemetry & SSE Streaming
+### ⚡ 3. Real-Time Telemetry & Autonomous AI Remediation
 - **Server-Sent Events (`EventSource`)**: Streams live terminal logs directly from remote container build engines into the user's web dashboard with millisecond precision.
-- **Tenant Isolation**: Strict JWT authentication ensures users only observe build telemetry corresponding to their authenticated workspace.
+- **Autonomous One-Click Fix Engine**: AI diagnostic engine inspects container build failures (e.g., missing dependencies, OOM errors), displays heuristic confidence scores, and applies one-click automated fixes directly to pipeline configuration (`POST /api/v1/build/apply-fix`).
 
-### 🐳 3. Autonomous Container Buildpacks & ECR Registry
+### 🐳 4. Autonomous Container Buildpacks & ECR Registry
 - **Auto-Healing Dockerfiles**: Inspects repository structures and automatically generates standardized, multi-stage production Dockerfiles if none exist.
 - **Resilient Packaging**: Automatically patches fragile dependency commands (e.g., converting `npm ci` to `npm install --legacy-peer-deps`) to guarantee deterministic container generation.
 - **Automated OCI Registry Push**: Logs into AWS ECR (`microps-hq`), tags builds with unique tenant identifiers (`tenant-<userId>-<projectName>-<jobId>`), and pushes verified images.
 
-### ☁️ 4. Serverless ECS Fargate Deployment
+### ☁️ 5. Serverless ECS Fargate Deployment
 - **Zero Idle Infrastructure**: Provisions dedicated AWS ECS Fargate serverless tasks on demand within `microps-tenant-cluster`.
 - **Health Checks & ALB Attachment**: Seamlessly attaches active containers to AWS Application Load Balancer target groups (`microps-platform-backend-tg`) for production traffic routing.
 
@@ -42,18 +48,18 @@ MicrOps is live on AWS in the **Sydney (`ap-southeast-2`)** region running under
 ## 🏛️ System Architecture Overview
 
 ```
-[Client Web Browser / Dashboard]
-             │
-             ▼ (HTTP Port 80 / SSE Telemetry Stream)
+[Client Web Browser / Dashboard] (microps.in)
+              │
+              ▼ (HTTP Port 80 / SSE Telemetry Stream)
   [EC2 Elastic IP: 13.238.226.195 (Nginx Reverse Proxy)]
-             │
-      ┌──────┴──────────────────────────┐
-      ▼                                 ▼
+              │
+       ┌──────┴──────────────────────────┐
+       ▼                                 ▼
 [Static SPA Assets]           [PM2 Cluster Node API: Port 8000]
 (/var/www/microps-frontend)             │
-                                        ├──► [Neon Cloud PostgreSQL] (Relational Metadata)
-                                        └──► [Redis 7.4 / BullMQ] (Async Build Queue)
-                                                    │
+       ▲ Synchronized                   ├──► [Neon Cloud PostgreSQL] (Relational Metadata)
+       │ via GitHub Actions             └──► [Redis 7.4 / BullMQ] (Async Build Queue)
+[AWS S3: microps-client]                            │
                                                     ▼ (Remote Worker Dispatch)
                                      [GitHub Actions Runner Vault VM]
                                                     │
@@ -87,7 +93,13 @@ microps/production/
 │   └── package.json
 └── frontend/                    # React 18 / Vite 6 / Tailwind CSS SPA Dashboard
     ├── src/
-    │   ├── components/          # Reusable UI sections (Projects, Billing, Navigation)
+    │   ├── components/
+    │   │   ├── dashboard/       # OverviewSection & DeploymentControlCenter orchestrator
+    │   │   ├── deploy/          # 9 decomposed deployment sub-components (LogConsole, ConfigPanel, etc.)
+    │   │   ├── landing/         # HeroSection, Plasma & high-converting landing components
+    │   │   ├── settings/        # SettingsSection with operator identity & security policy
+    │   │   ├── billing/         # BillingSection, tier grids & invoice ledger
+    │   │   └── ui/              # Design system primitives (Card, StatCard, StatusBadge, ShinyText)
     │   ├── pages/               # Application views (Dashboard, Login, Signup)
     │   ├── lib/api.ts           # Dynamic HTTP client & JWT Bearer interceptor
     │   └── store/               # Zustand state stores
