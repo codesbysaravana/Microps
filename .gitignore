@@ -29,7 +29,9 @@ node_modules/
 ############################
 
 dist/
-build/
+/build/
+/frontend/build/
+!backend/src/services/build/
 out/
 coverage/
 .next/
